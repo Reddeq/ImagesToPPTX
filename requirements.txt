@@ -1,0 +1,5 @@
+paddlepaddle>=3.0.0,<3.3.0
+paddleocr>=3.4.0,<3.6.0
+PyMuPDF>=1.23.0
+python-pptx>=0.6.23
+Pillow>=10.0.0
