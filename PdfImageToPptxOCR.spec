@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec file для создания portable билда на Windows
+PyInstaller spec file для создания portable onefolder билда на Windows
 Python 3.11 + PaddlePaddle + OpenCV + PaddleOCR
 """
 import os
@@ -33,8 +33,8 @@ def safe_append_binaries(target_list, item):
     else:
         print(f"[SPEC WARN] Skipping invalid binaries format: {item}")
 
-def collect_package_full(package_name):
-    """Полный сбор пакета: данные, бинарники, hiddenimports"""
+def collect_package_safe(package_name):
+    """Сбор пакета с обработкой ошибок импорта"""
     global datas, binaries, hiddenimports
     try:
         print(f"[SPEC] Collecting package: {package_name}")
@@ -56,9 +56,9 @@ PACKAGES_TO_COLLECT = [
     'paddleocr', 
     'paddlex',
     'cv2',
-    'fitz',  # PyMuPDF
-    'pptx',  # python-pptx
-    'PIL',   # Pillow
+    'fitz',
+    'pptx',
+    'PIL',
     'scipy',
     'numpy',
     'pyclipper',
@@ -70,17 +70,18 @@ PACKAGES_TO_COLLECT = [
 ]
 
 for pkg in PACKAGES_TO_COLLECT:
-    collect_package_full(pkg)
+    collect_package_safe(pkg)
 
 # ============================================================
 # 4. Дополнительные hiddenimports для Paddle и OpenCV
 # ============================================================
 extra_hiddenimports = [
-    # PaddlePaddle
+    # PaddlePaddle core
     'paddle',
     'paddle.fluid',
     'paddle.inference',
     'paddle.base',
+    'paddle.base.libpaddle',
     'paddle.nn',
     'paddle.optimizer',
     'paddle.distribution',
@@ -90,18 +91,46 @@ extra_hiddenimports = [
     'paddle.autograd',
     'paddle.jit',
     'paddle.sysconfig',
+    'paddle.utils',
+    'paddle.utils.cpp_extension',
+    'paddle_amp',
+    'paddle_batch_norm',
+    'paddle_conv',
+    'paddle_nn',
+    'paddle_pooling',
+    'paddle_rnn',
     
-    # PaddleOCR
+    # PaddleOCR - основные модули
     'paddleocr',
     'paddleocr.paddleocr',
+    'paddleocr.tools',
     'paddleocr.tools.infer',
     'paddleocr.tools.infer.predict_system',
     'paddleocr.tools.infer.predict_det',
     'paddleocr.tools.infer.predict_rec',
     'paddleocr.tools.infer.predict_cls',
+    'paddleocr.ppocr',
     'paddleocr.ppocr.utility',
     'paddleocr.ppocr.postprocess',
     'paddleocr.ppocr.data',
+    'paddleocr.ppocr.utils',
+    'paddleocr.ppocr.utils.logging',
+    'paddleocr.ppocr.utils.utility',
+    'paddleocr.ppocr.utils.i18n',
+    'paddleocr.ppocr.utils.network',
+    'paddleocr.ppocr.utils.visual',
+    'paddleocr.ppocr.utils.dict90',
+    'paddleocr.ppocr.utils.en_dict',
+    'paddleocr.ppocr.utils.ic15_dict',
+    'paddleocr.ppocr.utils.ka_dict',
+    'paddleocr.ppocr.utils.korean_dict',
+    'paddleocr.ppocr.utils.lang_dict',
+    'paddleocr.ppocr.utils.ocriqa_dict',
+    'paddleocr.ppocr.utils.ru_dict',
+    'paddleocr.ppocr.utils.table_dict',
+    'paddleocr.ppocr.utils.text_detector',
+    'paddleocr.ppocr.utils.text_recognizer',
+    'paddleocr.ppocr.utils.utility',
     
     # PaddleX
     'paddlex',
@@ -110,6 +139,18 @@ extra_hiddenimports = [
     'paddlex.cv.models',
     'paddlex.det',
     'paddlex.seg',
+    'paddlex.cls',
+    'paddlex.rec',
+    'paddlex.inference',
+    'paddlex.inference.models',
+    'paddlex.inference.models.base',
+    'paddlex.inference.models.classifier',
+    'paddlex.inference.models.detector',
+    'paddlex.inference.models.segmentor',
+    'paddlex.utils',
+    'paddlex.utils.deps',
+    'paddlex.utils.logger',
+    'paddlex.utils.version',
     
     # OpenCV
     'cv2',
@@ -117,45 +158,209 @@ extra_hiddenimports = [
     'cv2.mat_wrapper',
     'cv2.misc',
     'cv2.umatmat',
+    'cv2.gapi',
     'cv2.gapi.cpu',
     'cv2.gapi.ocl',
     'cv2.gapi.onnx',
     'cv2.gapi.streaming',
     'cv2.gapi.wip.draw',
+    'cv2.gapi.core',
+    'cv2.gapi.imgproc',
+    'cv2.gapi.fluid',
+    'cv2.gapi.own',
+    'cv2.gapi.render',
+    'cv2.gapi.video',
+    'cv2.dnn',
+    'cv2.ml',
+    'cv2.ogl',
+    'cv2.cuda',
     
-    # SciPy
+    # SciPy - исправленные импорты
     'scipy',
     'scipy.ndimage',
-    'scipy.ndimage.filters',
-    'scipy.ndimage.morphology',
-    'scipy.ndimage.interpolation',
+    'scipy.ndimage._filters',
+    'scipy.ndimage._morphology',
+    'scipy.ndimage._interpolation',
+    'scipy.ndimage._measurements',
     'scipy.special',
     'scipy.linalg',
     'scipy.interpolate',
     'scipy.sparse',
     'scipy._lib',
     'scipy._lib.messagestream',
+    'scipy._lib._util',
+    'scipy._lib._ccallback',
+    'scipy._lib._ccallback_c',
+    'scipy._lib.decorator',
+    'scipy.spatial',
+    'scipy.spatial.transform',
+    'scipy.integrate',
+    'scipy.optimize',
+    'scipy.stats',
     
-    # Другие
+    # PIL/Pillow
     'PIL',
     'PIL.Image',
     'PIL.ImageDraw',
     'PIL.ImageFont',
+    'PIL._imaging',
+    'PIL._imagingft',
+    'PIL._typing',
+    'PIL.features',
+    'PIL._deprecate',
+    
+    # PyMuPDF
     'fitz',
+    'fitz.fitz',
+    'fitz.utils',
+    
+    # python-pptx
     'pptx',
+    'pptx.opc',
+    'pptx.oxml',
+    'pptx.util',
+    'pptx.exc',
+    'pptx.enum',
+    'pptx.parts',
+    'pptx.shapes',
+    'pptx.slide',
+    'pptx.text',
+    'pptx.chart',
+    'pptx.table',
+    
+    # YAML
     'yaml',
+    'yaml.loader',
+    'yaml.dumper',
+    'yaml.resolver',
+    'yaml.representer',
+    'yaml.constructor',
+    'yaml.reader',
+    'yaml.scanner',
+    'yaml.parser',
+    'yaml.composer',
+    'yaml.serializer',
+    'yaml.emitter',
+    
+    # Стандартные библиотеки
     'queue',
     'multiprocessing',
+    'multiprocessing.pool',
+    'multiprocessing.dummy',
     'concurrent.futures',
-    'encoding',
+    'concurrent.futures.thread',
+    'concurrent.futures.process',
+    'threading',
+    'subprocess',
+    'tempfile',
+    'shutil',
+    'platform',
+    'ctypes',
+    'ctypes.util',
+    'logging',
+    'logging.config',
+    'json',
+    'pickle',
+    'copy',
+    'io',
+    'os',
+    'sys',
+    'pathlib',
+    're',
+    'collections',
+    'collections.abc',
+    'functools',
+    'itertools',
+    'operator',
+    'warnings',
+    'traceback',
+    'struct',
+    'array',
+    'mmap',
+    'select',
+    'socket',
+    'ssl',
+    'http',
+    'http.client',
+    'urllib',
+    'urllib.request',
+    'urllib.parse',
+    'email',
+    'email.mime',
+    'email.mime.text',
+    'email.mime.multipart',
+    'email.mime.image',
+    'base64',
+    'hashlib',
+    'hmac',
+    'secrets',
+    'uuid',
+    'datetime',
+    'time',
+    'calendar',
+    'locale',
+    'gettext',
+    'getpass',
+    'curses',
+    'unicodedata',
+    'stringprep',
+    'rlcompleter',
+    'csv',
+    'configparser',
+    'argparse',
+    'optparse',
+    'textwrap',
+    'difflib',
+    'pprint',
+    'reprlib',
+    'enum',
+    'graphlib',
+    'contextlib',
+    'abc',
+    'atexit',
+    'weakref',
+    'gc',
+    'inspect',
+    'dis',
+    'ast',
+    'token',
+    'keyword',
+    'tokenize',
+    'tabnanny',
+    'pyclbr',
+    'compileall',
+    'py_compile',
+    'formatter',
+    'pdb',
+    'profile',
+    'timeit',
+    'trace',
+    'tracemalloc',
+    'distutils',
+    'ensurepip',
+    'venv',
+    'zipapp',
+    'zipfile',
+    'tarfile',
+    'gzip',
+    'bz2',
+    'lzma',
+    'zlib',
+    'codecs',
+    'encodings',
     'encodings.utf_8',
+    'encodings.cp1251',
     'encodings.cp1252',
     'encodings.cp437',
+    'encodings.latin_1',
+    'encodings.ascii',
+    'encodings.mbcs',
+    'encodings.charmap',
 ]
 
 hiddenimports.extend(extra_hiddenimports)
 # Удаляем дубликаты
-hiddenimports = list(set(hiddenimports))
+hiddenimports = list(dict.fromkeys(hiddenimports))
 
 # ============================================================
 # 5. Сбор бинарных файлов PaddlePaddle (Windows DLL)
@@ -399,37 +604,16 @@ a = Analysis(
 pyz = PYZ(a.pure)
 
 # ============================================================
-# 13. EXE (портативный однофайловый режим)
+# 13. COLLECT (портативный onefolder режим - папка с файлами)
 # ============================================================
-exe = EXE(
+coll = COLLECT(
     pyz,
     a.scripts,
     a.binaries,
     a.datas,
     [],
-    name='PdfImageToPptxOCR',
-    debug=False,
-    bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=upx_exclude,
-    console=True,  # True для отладки, можно поставить False для GUI
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
+    name='PdfImageToPptxOCR',
 )
-
-# Для folder-режима (portable папка) раскомментируйте COLLECT ниже
-# и закомментируйте EXE выше (переместив a.binaries, a.datas в COLLECT)
-
-# coll = COLLECT(
-#     exe,
-#     a.binaries,
-#     a.datas,
-#     strip=False,
-#     upx=True,
-#     upx_exclude=upx_exclude,
-#     name='PdfImageToPptxOCR',
-# )
