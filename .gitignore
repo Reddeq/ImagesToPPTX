@@ -1,56 +1,104 @@
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.o
-*.obj
-*.out
+# Исключаемые папки (по вашему запросу)
+.continue/
+.venv/
 build/
 dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 *.so
-*.dll
-*.exe
-
-# Dependencies
-.venv/
+.Python
+env/
 venv/
-.env
-.env.local
-*.env.*
+ENV/
+env.bak/
+venv.bak/
 
-# Logs and temp files
-*.log
-*.tmp
-*.swp
+# PyInstaller
+*.manifest
+*.spec
 
-# Editors
-.vscode/
-.idea/
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Coverage and testing
-.coverage
-coverage/
+# Unit test / coverage reports
 htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
 .pytest_cache/
-.mypy_cache/
 
-# Distribution archives
-*.tar
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.zip
-*.gz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
+# Переводы
+*.mo
+*.pot
+
+# Документация
+docs/_build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+.env.bak
+.venv.bak
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Логи
+*.log
+test_output.log
