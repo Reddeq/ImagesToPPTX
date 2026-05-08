@@ -8,7 +8,6 @@ from typing import Any
 
 from PIL import Image, ImageOps, ImageDraw
 import fitz
-from paddleocr import PaddleOCR
 
 
 logger = logging.getLogger(__name__)
@@ -17,6 +16,36 @@ logger = logging.getLogger(__name__)
 PADDLEX_MODEL_DIRS = ("official_models", "hub", "models")
 PADDLEX_CACHE_DIRS = (".paddlex", ".cache/paddlex")
 PADDLEOCR_CACHE_DIRS = (".paddleocr", ".cache/paddleocr")
+
+
+def _disable_paddlex_dependency_check():
+    """
+    Отключает проверку зависимостей в paddlex.utils.deps.
+    Это необходимо для работы в frozen-режиме, где pip install недоступен.
+    Вызывается ДО импорта PaddleOCR.
+    """
+    try:
+        import paddlex.utils.deps as deps_module
+        
+        # Сохраняем оригинальную функцию (на всякий случай)
+        if not hasattr(deps_module, '_original_require_extra'):
+            deps_module._original_require_extra = deps_module.require_extra
+        
+        # Создаем заглушку
+        def _dummy_require_extra(extra, obj_name=None, alt=None):
+            # Просто возвращаем ничего, не проверяя зависимости
+            logger.debug(f"PADDLEX dependency check skipped for: {extra}")
+            pass
+        
+        # Подменяем функцию
+        deps_module.require_extra = _dummy_require_extra
+        
+        logger.info("PADDLEX dependency check disabled successfully")
+        
+    except ImportError as e:
+        logger.warning(f"Could not import paddlex.utils.deps for patching: {e}")
+    except Exception as e:
+        logger.warning(f"Error disabling PADDLEX dependency check: {e}")
 
 
 def _resolve_model_dir() -> str | None:
@@ -151,6 +180,10 @@ class PaddleOCRProcessor:
         """
         device = "gpu" if use_gpu else "cpu"
 
+        # ВАЖНО: Отключаем проверку зависимостей paddlex ДО импорта PaddleOCR
+        # Это критически важно для работы в frozen-режиме
+        _disable_paddlex_dependency_check()
+
         # В frozen-режиме настраиваем пути к PaddleX/PaddleOCR
         _setup_paddlex_paths()
 
@@ -164,6 +197,9 @@ class PaddleOCRProcessor:
         # Устанавливаем переменную окружения для отключения проверки зависимостей
         # Это необходимо для работы в frozen-режиме, когда pip install недоступен
         os.environ["PADDLEX_SKIP_DEPENDENCY_CHECK"] = "1"
+
+        # Импортируем PaddleOCR ПОСЛЕ отключения проверки зависимостей
+        from paddleocr import PaddleOCR
 
         self.ocr = PaddleOCR(
             lang=lang,

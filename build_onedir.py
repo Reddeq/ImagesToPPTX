@@ -141,6 +141,13 @@ def main():
     if hooks_dir:
         pyinstaller_cmd.extend(["--additional-hooks-dir", str(hooks_dir)])
     
+    # Добавляем runtime hook для paddlex
+    # Этот хук выполняется при запуске приложения ДО основного кода
+    rthook_file = root_dir / "hooks" / "rthook-paddlex.py"
+    if rthook_file.exists():
+        pyinstaller_cmd.extend(["--runtime-hook", str(rthook_file)])
+        print(f"  Добавлен runtime hook: {rthook_file}")
+    
     pyinstaller_cmd.extend([
         # Добавляем исходные файлы модулей
         "--add-data", f"{os.path.join('gui', '*.py')}{os.pathsep}gui",

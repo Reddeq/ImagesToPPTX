@@ -1,14 +1,44 @@
 ```
-# Build artifacts
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
 build/
+dist/
+*.so
+*.dylib
+*.dll
 
 # Dependencies
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+.venv/
+venv/
+.env
+.env.local
+*.env.*
 
-# Hooks directory (if it contains temporary files)
-hooks/*.pyc
-hooks/__pycache__/
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# MyPy
+.mypy_cache/
+
+# PyTest
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
 ```
