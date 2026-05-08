@@ -16,6 +16,11 @@
     - Модели PaddleOCR НЕ включаются в сборку автоматически
     - Пользователь скачает модели при первом запуске автоматически
     - Модели сохраняются в %USERPROFILE%\\paddleocr
+    - Скрипт использует кастомные hooks из папки hooks/ для корректной 
+      работы PaddleX/PaddleOCR с проверкой зависимостей
+
+Изменения в .gitignore:
+    - Ничего не удалялось и не добавлялось
 """
 
 import os
@@ -77,6 +82,52 @@ def main():
         paddlex_path = None
         ppocr_path = None
     
+    # Путь к hooks директории
+    hooks_dir = root_dir / "hooks"
+    if hooks_dir.exists():
+        print(f"  Найдена директория hooks: {hooks_dir}")
+    else:
+        print(f"  ⚠️ Директория hooks не найдена: {hooks_dir}")
+        hooks_dir = None
+    
+    # Определяем дополнительные зависимости для paddlex[ocr]
+    # Эти пакеты требуются для работы OCR пайплайна PaddleX
+    paddlex_ocr_deps = [
+        "paddleocr",
+        "ppocr",
+        "paddle",
+        "paddle.baseline",
+        "paddle.base",
+        "paddle.fluid",
+        "paddle.nn",
+        "paddle.optimizer",
+        "paddle.distribution",
+        "paddle.inference",
+        "paddle.autograd",
+        "visualdl",
+        "colorlog",
+        "pyyaml",
+        "ruamel.yaml",
+        "attr",
+        "attrs",
+        "lxml",
+        "fonttools",
+        "opencv_python",
+        "opencv_python_headless",
+        "shapely",
+        "lmdb",
+        "scikit-image",
+        "imgaug",
+        "pyclipper",
+        "openpyxl",
+        "xlsxwriter",
+        "tables",
+        "pdf2image",
+        "lap",
+        "motmetrics",
+        "filterpy",
+    ]
+    
     pyinstaller_cmd = [
         sys.executable,
         "-m", "PyInstaller",
@@ -84,6 +135,13 @@ def main():
         "--onedir",  # onedir режим
         "--windowed",  # GUI приложение (без консоли)
         "--icon=NONE",  # Без иконки (можно добавить свой .ico)
+    ]
+    
+    # Добавляем путь к hooks если существует
+    if hooks_dir:
+        pyinstaller_cmd.extend(["--additional-hooks-dir", str(hooks_dir)])
+    
+    pyinstaller_cmd.extend([
         # Добавляем исходные файлы модулей
         "--add-data", f"{os.path.join('gui', '*.py')}{os.pathsep}gui",
         "--add-data", f"{os.path.join('ocr_paddle', '*.py')}{os.pathsep}ocr_paddle",
@@ -129,6 +187,29 @@ def main():
         "--collect-all", "paddleocr",
         "--collect-all", "ppocr",
         "--collect-all", "paddlex",
+        # Явно собираем зависимости paddlex[ocr]
+        "--collect-all", "visualdl",
+        "--collect-all", "colorlog",
+        "--collect-all", "pyyaml",
+        "--collect-all", "ruamel.yaml",
+        "--collect-all", "attr",
+        "--collect-all", "attrs",
+        "--collect-all", "lxml",
+        "--collect-all", "fonttools",
+        "--collect-all", "opencv_python",
+        "--collect-all", "opencv_python_headless",
+        "--collect-all", "shapely",
+        "--collect-all", "lmdb",
+        "--collect-all", "scikit-image",
+        "--collect-all", "imgaug",
+        "--collect-all", "pyclipper",
+        "--collect-all", "openpyxl",
+        "--collect-all", "xlsxwriter",
+        "--collect-all", "tables",
+        "--collect-all", "pdf2image",
+        "--collect-all", "lap",
+        "--collect-all", "motmetrics",
+        "--collect-all", "filterpy",
         # Другие зависимости
         "--hidden-import", "PIL",
         "--hidden-import", "fitz",  # PyMuPDF
@@ -267,6 +348,9 @@ def main():
         "--hidden-import", "paddlex.inference.utils",
         "--hidden-import", "paddlex.utils",
         "--hidden-import", "paddlex.ops",
+        # Переменная окружения для пропуска проверки зависимостей
+        # Устанавливается в runtime, но добавляем для полноты
+        "--hidden-import", "paddlex.utils.deps",
     ]
     
     # Добавляем данные из пакетов paddleocr, paddlex и ppocr если пути найдены

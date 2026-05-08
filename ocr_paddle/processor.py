@@ -160,6 +160,10 @@ class PaddleOCRProcessor:
             logger.info(f"Используются bundled модели из: {model_dir}")
             os.environ["PADDLEOCR_MODEL_DIR"] = model_dir
             os.environ["PADDLEX_MODEL_DIR"] = model_dir
+        
+        # Устанавливаем переменную окружения для отключения проверки зависимостей
+        # Это необходимо для работы в frozen-режиме, когда pip install недоступен
+        os.environ["PADDLEX_SKIP_DEPENDENCY_CHECK"] = "1"
 
         self.ocr = PaddleOCR(
             lang=lang,
