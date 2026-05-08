@@ -516,15 +516,23 @@ for model_dir in model_dirs_to_bundle:
 # 9. Runtime hook для Windows
 # ============================================================
 # Runtime hook теперь хранится в отдельном файле _runtime_hook_paddle.py
-runtime_hook_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_runtime_hook_paddle.py')
+# Используем sys.argv[0] или os.getcwd() вместо __file__, т.к. __file__ не определен в spec
+import sys
+if getattr(sys, 'frozen', False):
+    # Запущен как скомпилированный exe
+    script_dir = os.path.dirname(sys.executable)
+else:
+    # Запущен как скрипт
+    script_dir = os.getcwd()
+
+runtime_hook_path = os.path.join(script_dir, '_runtime_hook_paddle.py')
 print(f"[SPEC] Using runtime hook: {runtime_hook_path}")
 
 # Добавляем hookspath для кастомных хуков
-hookspath = [os.path.dirname(os.path.abspath(__file__))]
+hookspath = [script_dir]
 
 # Путь к директории проекта для pathex
-project_dir = os.path.dirname(os.path.abspath(__file__))
-pathex = [project_dir]
+pathex = [script_dir]
 
 # ============================================================
 # 10. Исключения (уменьшаем размер билда)
