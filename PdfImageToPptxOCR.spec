@@ -8,7 +8,7 @@ import sys
 from PyInstaller.utils.hooks import collect_all, collect_submodules, collect_data_files, get_package_paths
 from PyInstaller.utils.hooks import copy_metadata
 from PyInstaller.compat import is_win
-from PyInstaller.building.api import Analysis, PYZ, COLLECT
+from PyInstaller.building.build_main import Analysis, PYZ, COLLECT
 
 # ============================================================
 # 1. Инициализация коллекций
