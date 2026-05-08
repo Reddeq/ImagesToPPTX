@@ -358,7 +358,7 @@ def main():
         # Переменная окружения для пропуска проверки зависимостей
         # Устанавливается в runtime, но добавляем для полноты
         "--hidden-import", "paddlex.utils.deps",
-    ]
+    ])
     
     # Добавляем данные из пакетов paddleocr, paddlex и ppocr если пути найдены
     if paddleocr_path:
