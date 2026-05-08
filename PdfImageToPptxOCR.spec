@@ -8,6 +8,7 @@ import sys
 from PyInstaller.utils.hooks import collect_all, collect_submodules, collect_data_files, get_package_paths
 from PyInstaller.utils.hooks import copy_metadata
 from PyInstaller.compat import is_win
+from PyInstaller.building.api import Analysis, PYZ, COLLECT
 
 # ============================================================
 # 1. Инициализация коллекций
@@ -515,8 +516,15 @@ for model_dir in model_dirs_to_bundle:
 # 9. Runtime hook для Windows
 # ============================================================
 # Runtime hook теперь хранится в отдельном файле _runtime_hook_paddle.py
-runtime_hook_path = os.path.join(os.getcwd(), '_runtime_hook_paddle.py')
+runtime_hook_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_runtime_hook_paddle.py')
 print(f"[SPEC] Using runtime hook: {runtime_hook_path}")
+
+# Добавляем hookspath для кастомных хуков
+hookspath = [os.path.dirname(os.path.abspath(__file__))]
+
+# Путь к директории проекта для pathex
+project_dir = os.path.dirname(os.path.abspath(__file__))
+pathex = [project_dir]
 
 # ============================================================
 # 10. Исключения (уменьшаем размер билда)
@@ -549,22 +557,23 @@ print(f"[SPEC] Total hiddenimports: {len(hiddenimports)}")
 
 a = Analysis(
     ['main.py'],
-    pathex=[],
+    pathex=pathex,
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
-    hookspath=[],
+    hookspath=hookspath,
     hooksconfig={},
     runtime_hooks=[runtime_hook_path],
     excludes=excludes,
-    noarchive=False,
+    # noarchive=True для onedir сбилда - распаковывает все файлы в _internal
+    noarchive=True,
     optimize=0,
 )
 
 pyz = PYZ(a.pure)
 
 # ============================================================
-# 13. COLLECT (портативный onefolder режим - папка с файлами)
+# 13. COLLECT (портативный onedir режим - папка с exe и _internal)
 # ============================================================
 coll = COLLECT(
     pyz,
@@ -576,4 +585,6 @@ coll = COLLECT(
     upx=True,
     upx_exclude=upx_exclude,
     name='PdfImageToPptxOCR',
+    # onedir=True создаёт структуру: PdfImageToPptxOCR/PdfImageToPptxOCR.exe + _internal/
+    onedir=True,
 )

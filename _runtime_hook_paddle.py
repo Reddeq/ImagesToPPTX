@@ -2,7 +2,7 @@
 Runtime hook для PaddlePaddle/PaddleOCR в frozen-сборке.
 
 Настройки:
-- Добавляет директорию exe в PATH для поиска DLL
+- Добавляет директорию exe и _internal в PATH для поиска DLL
 - Указывает пути к моделям через переменные окружения
 - Отключает экспериментальные флаги PaddlePaddle
 """
@@ -19,18 +19,20 @@ def setup_runtime_environment():
     # Директория executable
     exe_dir = os.path.dirname(sys.executable)
     
-    # Добавляем exe_dir в PATH для поиска DLL
-    os.environ["PATH"] = exe_dir + os.pathsep + os.environ.get("PATH", "")
-    
     # Определяем базовую директорию
     if hasattr(sys, "_MEIPASS"):
         base_dir = Path(sys._MEIPASS)
     else:
         base_dir = Path(exe_dir)
     
-    # Проверяем _internal для portable режима
+    # Проверяем _internal для portable onedir режима
     internal_dir = Path(exe_dir) / "_internal"
-    if not internal_dir.is_dir():
+    if internal_dir.is_dir():
+        # Для onedir сборки добавляем _internal в PATH
+        os.environ["PATH"] = str(internal_dir) + os.pathsep + exe_dir + os.pathsep + os.environ.get("PATH", "")
+    else:
+        # Для oneexe или если _internal нет
+        os.environ["PATH"] = exe_dir + os.pathsep + os.environ.get("PATH", "")
         internal_dir = base_dir
     
     # Пути к моделям
