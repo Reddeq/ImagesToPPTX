@@ -1,20 +1,47 @@
+"""
+Runtime hook для PaddlePaddle/PaddleOCR в frozen-сборке.
 
+Настройки:
+- Добавляет директорию exe в PATH для поиска DLL
+- Указывает пути к моделям через переменные окружения
+- Отключает экспериментальные флаги PaddlePaddle
+"""
 import os
 import sys
-import pathlib # Импортируем pathlib, чтобы быть уверенными в его доступности
+from pathlib import Path
 
-# Добавляем директорию exe в PATH для поиска DLL
-exe_dir = os.path.dirname(sys.executable)
-if getattr(sys, 'frozen', False):
-    os.environ['PATH'] = exe_dir + os.pathsep + os.environ.get('PATH', '')
 
-    # Указываем PaddleX / PaddleOCR где искать модели
-    base_dir = pathlib.Path(sys._MEIPASS) if hasattr(sys, '_MEIPASS') else pathlib.Path(exe_dir)
-    internal_dir = os.path.join(exe_dir, '_internal') if os.path.isdir(os.path.join(exe_dir, '_internal')) else str(base_dir)
+def setup_runtime_environment():
+    """Настройка окружения для frozen-сборки."""
+    if not getattr(sys, "frozen", False):
+        return
+    
+    # Директория executable
+    exe_dir = os.path.dirname(sys.executable)
+    
+    # Добавляем exe_dir в PATH для поиска DLL
+    os.environ["PATH"] = exe_dir + os.pathsep + os.environ.get("PATH", "")
+    
+    # Определяем базовую директорию
+    if hasattr(sys, "_MEIPASS"):
+        base_dir = Path(sys._MEIPASS)
+    else:
+        base_dir = Path(exe_dir)
+    
+    # Проверяем _internal для portable режима
+    internal_dir = Path(exe_dir) / "_internal"
+    if not internal_dir.is_dir():
+        internal_dir = base_dir
+    
+    # Пути к моделям
+    models_dir = internal_dir / "_models"
+    if models_dir.is_dir():
+        os.environ["PADDLEX_MODEL_PATH"] = str(models_dir)
+        os.environ["PADDLEOCR_MODEL_PATH"] = str(models_dir)
+    
+    # Переменные окружения для стабильности Paddle
+    os.environ["FLAGS_use_pir"] = "0"
+    os.environ["FLAGS_use_mkldnn"] = "0"
 
-    models_dir = os.path.join(internal_dir, '_models')
-    if os.path.isdir(models_dir):
-        # Для paddlex — устанавливаем PADDLEX_MODEL_PATH
-        os.environ['PADDLEX_MODEL_PATH'] = models_dir
-        # Для paddleocr — устанавливаем PaddleOCR model path
-        os.environ['PADDLEOCR_MODEL_PATH'] = models_dir
+
+setup_runtime_environment()
