@@ -15,7 +15,7 @@
 Важно:
     - Модели PaddleOCR НЕ включаются в сборку автоматически
     - Пользователь скачает модели при первом запуске автоматически
-    - Модели сохраняются в %USERPROFILE%\.paddleocr
+    - Модели сохраняются в %USERPROFILE%\\paddleocr
 """
 
 import os
@@ -59,6 +59,23 @@ def main():
     
     # Формирование команды PyInstaller
     print("\n[3/5] Запуск PyInstaller...")
+    
+    # Получаем путь к сайпакетам для добавления данных из paddleocr и paddlex
+    try:
+        import paddleocr
+        import paddlex
+        import ppocr
+        paddleocr_path = Path(paddleocr.__file__).parent
+        paddlex_path = Path(paddlex.__file__).parent
+        ppocr_path = Path(ppocr.__file__).parent
+        print(f"  Путь к paddleocr: {paddleocr_path}")
+        print(f"  Путь к paddlex: {paddlex_path}")
+        print(f"  Путь к ppocr: {ppocr_path}")
+    except ImportError as e:
+        print(f"  ⚠️ Не удалось импортировать пакеты: {e}")
+        paddleocr_path = None
+        paddlex_path = None
+        ppocr_path = None
     
     pyinstaller_cmd = [
         sys.executable,
@@ -111,6 +128,7 @@ def main():
         "--collect-all", "paddle",
         "--collect-all", "paddleocr",
         "--collect-all", "ppocr",
+        "--collect-all", "paddlex",
         # Другие зависимости
         "--hidden-import", "PIL",
         "--hidden-import", "fitz",  # PyMuPDF
@@ -242,7 +260,28 @@ def main():
         "--hidden-import", "docx.opc",
         "--hidden-import", "docx.shared",
         "--hidden-import", "docx.enum",
+        # Paddlex pipeline config
+        "--hidden-import", "paddlex.inference",
+        "--hidden-import", "paddlex.inference.pipelines",
+        "--hidden-import", "paddlex.inference.pipelines.ocr",
+        "--hidden-import", "paddlex.inference.utils",
+        "--hidden-import", "paddlex.utils",
+        "--hidden-import", "paddlex.ops",
     ]
+    
+    # Добавляем данные из пакетов paddleocr, paddlex и ppocr если пути найдены
+    if paddleocr_path:
+        pyinstaller_cmd.extend([
+            "--add-data", f"{paddleocr_path}{os.pathsep}paddleocr",
+        ])
+    if paddlex_path:
+        pyinstaller_cmd.extend([
+            "--add-data", f"{paddlex_path}{os.pathsep}paddlex",
+        ])
+    if ppocr_path:
+        pyinstaller_cmd.extend([
+            "--add-data", f"{ppocr_path}{os.pathsep}ppocr",
+        ])
     
     # Основной файл приложения
     pyinstaller_cmd.append(str(root_dir / "main.py"))
@@ -302,7 +341,7 @@ def main():
 
 Важно:
 - При первом запуске PaddleOCR автоматически загрузит необходимые модели
-- Модели будут сохранены в %USERPROFILE%\\.paddleocr
+- Модели будут сохранены в %USERPROFILE%\\paddleocr
 - Для работы требуется подключение к интернету при первом запуске
 - После загрузки моделей приложение может работать офлайн
 
