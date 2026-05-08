@@ -62,6 +62,75 @@ def _resolve_model_dir() -> str | None:
     return None
 
 
+def _setup_paddlex_paths():
+    """
+    В замороженной сборке настраивает пути к конфигурационным файлам PaddleX.
+    Это необходимо для корректной работы load_pipeline_config().
+    """
+    if not getattr(sys, "frozen", False):
+        return
+    
+    # Определяем базовую директорию
+    if hasattr(sys, "_MEIPASS"):
+        base_dir = Path(sys._MEIPASS)
+    else:
+        base_dir = Path(os.path.dirname(sys.executable))
+    
+    # Проверяем _internal для portable режима (onedir)
+    internal_dir = Path(os.path.dirname(sys.executable)) / "_internal"
+    if not internal_dir.is_dir():
+        internal_dir = base_dir
+    
+    logger.info(f"Frozen mode detected. Base dir: {base_dir}, Internal dir: {internal_dir}")
+    
+    # Пути к пакетам в frozen-режиме
+    paddlex_dir = internal_dir / "paddlex"
+    paddleocr_dir = internal_dir / "paddleocr"
+    ppocr_dir = internal_dir / "ppocr"
+    
+    # Также проверяем base_dir на случай другой структуры
+    if not paddlex_dir.is_dir():
+        paddlex_dir = base_dir / "paddlex"
+    if not paddleocr_dir.is_dir():
+        paddleocr_dir = base_dir / "paddleocr"
+    if not ppocr_dir.is_dir():
+        ppocr_dir = base_dir / "ppocr"
+    
+    # Устанавливаем переменные окружения для PaddleX
+    if paddlex_dir.is_dir():
+        logger.info(f"Found paddlex directory: {paddlex_dir}")
+        paddlex_inference_dir = paddlex_dir / "inference"
+        if paddlex_inference_dir.is_dir():
+            os.environ.setdefault("PADDLEX_INFERENCE_DIR", str(paddlex_inference_dir))
+            logger.info(f"Set PADDLEX_INFERENCE_DIR={paddlex_inference_dir}")
+        
+        # Добавляем путь к paddlex в PYTHONPATH для корректного импорта конфигов
+        paddlex_parent = str(paddlex_dir.parent)
+        if paddlex_parent not in sys.path:
+            sys.path.insert(0, paddlex_parent)
+            logger.info(f"Added to sys.path: {paddlex_parent}")
+    else:
+        logger.warning(f"PaddleX directory not found. Checked: {internal_dir / 'paddlex'}, {base_dir / 'paddlex'}")
+    
+    if paddleocr_dir.is_dir():
+        logger.info(f"Found paddleocr directory: {paddleocr_dir}")
+        paddleocr_path = str(paddleocr_dir.parent)
+        if paddleocr_path not in sys.path:
+            sys.path.insert(0, paddleocr_path)
+            logger.info(f"Added to sys.path: {paddleocr_path}")
+    else:
+        logger.warning(f"PaddleOCR directory not found. Checked: {internal_dir / 'paddleocr'}, {base_dir / 'paddleocr'}")
+    
+    if ppocr_dir.is_dir():
+        logger.info(f"Found ppocr directory: {ppocr_dir}")
+        ppocr_path = str(ppocr_dir.parent)
+        if ppocr_path not in sys.path:
+            sys.path.insert(0, ppocr_path)
+            logger.info(f"Added to sys.path: {ppocr_path}")
+    else:
+        logger.warning(f"PPOCR directory not found. Checked: {internal_dir / 'ppocr'}, {base_dir / 'ppocr'}")
+
+
 class PaddleOCRProcessor:
     def __init__(
         self,
@@ -81,6 +150,9 @@ class PaddleOCRProcessor:
             apply_exif_transpose: Нормализовать EXIF orientation для обычных изображений.
         """
         device = "gpu" if use_gpu else "cpu"
+
+        # В frozen-режиме настраиваем пути к PaddleX/PaddleOCR
+        _setup_paddlex_paths()
 
         # В frozen-режиме указываем путь к bundled-моделям
         model_dir = _resolve_model_dir()
