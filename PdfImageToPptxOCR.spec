@@ -8,7 +8,7 @@ import sys
 from PyInstaller.utils.hooks import collect_all, collect_submodules, collect_data_files, get_package_paths
 from PyInstaller.utils.hooks import copy_metadata
 from PyInstaller.compat import is_win
-from PyInstaller.building.build_main import Analysis, PYZ, COLLECT
+from PyInstaller.building.build_main import Analysis, PYZ, COLLECT, EXE
 
 # ============================================================
 # 1. Инициализация коллекций
@@ -581,9 +581,9 @@ a = Analysis(
 pyz = PYZ(a.pure)
 
 # ============================================================
-# 13. COLLECT (портативный onedir режим - папка с exe и _internal)
+# 13. EXE (создаём исполняемый файл для onedir режима)
 # ============================================================
-coll = COLLECT(
+exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
@@ -593,6 +593,23 @@ coll = COLLECT(
     upx=True,
     upx_exclude=upx_exclude,
     name='PdfImageToPptxOCR',
-    # onedir=True создаёт структуру: PdfImageToPptxOCR/PdfImageToPptxOCR.exe + _internal/
-    onedir=True,
+    debug=False,
+    bootloader_ignore_signals=False,
+    console=True,  # True для отладки, False для GUI приложения
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+
+# ============================================================
+# 14. COLLECT (портативный onedir режим - папка с exe и _internal)
+# ============================================================
+coll = COLLECT(
+    exe,
+    strip=False,
+    upx=True,
+    upx_exclude=upx_exclude,
+    name='PdfImageToPptxOCR',
 )
