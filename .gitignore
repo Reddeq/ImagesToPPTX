@@ -98,7 +98,4 @@ dmypy.json
 # OS
 .DS_Store
 Thumbs.db
-
-# Логи
-*.log
-test_output.log
+```
