@@ -1,56 +1,14 @@
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.o
-*.obj
-*.out
+```
+# Build artifacts
 build/
-dist/
-*.so
-*.dll
-*.exe
 
 # Dependencies
-.venv/
-venv/
-.env
-.env.local
-*.env.*
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-
-# Editors
-.vscode/
-.idea/
-
-# Coverage and testing
-.coverage
-coverage/
-htmlcov/
-.pytest_cache/
-.mypy_cache/
-
-# Distribution archives
-*.tar
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.zip
-*.gz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
+# Hooks directory (if it contains temporary files)
+hooks/*.pyc
+hooks/__pycache__/
+```
