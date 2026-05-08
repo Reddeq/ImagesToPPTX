@@ -103,6 +103,8 @@ ocr_hiddenimports = [
     'tables',
     'pdf2image',
     'fitz',
+    'pypdfium2',
+    'pypdfium2_raw',
     
     # Трекинг (для некоторых моделей)
     'lap',

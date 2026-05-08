@@ -39,6 +39,8 @@ hiddenimports.extend([
     'motmetrics',
     'filterpy',
     'scikit-image',
+    'pypdfium2',
+    'pypdfium2_raw',
 ])
 
 print(f"Hook paddlex.utils.deps: loaded {len(hiddenimports)} hidden imports")

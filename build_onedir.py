@@ -126,6 +126,8 @@ def main():
         "lap",
         "motmetrics",
         "filterpy",
+        "pypdfium2",
+        "pypdfium2_raw",
     ]
     
     pyinstaller_cmd = [
@@ -155,6 +157,9 @@ def main():
         "--add-data", f"{os.path.join('ocr_to_pptx', '*.py')}{os.pathsep}ocr_to_pptx",
         "--add-data", f"{os.path.join('updater', '*.py')}{os.pathsep}updater",
         # Скрытые импорты для PaddlePaddle и PaddleOCR
+        "--hidden-import=bidi",
+        "--hidden-import=bidi.algorithm",
+        "--copy-metadata=python-bidi",
         "--hidden-import", "paddle",
         "--hidden-import", "paddleocr",
         "--hidden-import", "paddle.nn",
@@ -217,6 +222,8 @@ def main():
         "--collect-all", "lap",
         "--collect-all", "motmetrics",
         "--collect-all", "filterpy",
+        "--collect-all", "pypdfium2",
+        "--collect-all", "pypdfium2_raw",
         # Другие зависимости
         "--hidden-import", "PIL",
         "--hidden-import", "fitz",  # PyMuPDF
