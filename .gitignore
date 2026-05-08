@@ -1,24 +1,30 @@
 ```
-# Build artifacts
-build/
-dist/
-
-# Compiled Python files
-*.pyc
+# Python
 __pycache__/
-localpycs/
-
-# Executables
-*.exe
-*.pkg
-*.toc
-*.pyz
-
-# PyInstaller specific
-*.spec
-warn-*.txt
-xref-*.html
+*.pyc
+*.pyo
+*.pyd
 
 # Logs
 *.log
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Dependencies
+.venv/
+venv/
+pip-log.txt
+pip-selfcheck.json
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# OS generated files
+.DS_Store
+Thumbs.db
 ```

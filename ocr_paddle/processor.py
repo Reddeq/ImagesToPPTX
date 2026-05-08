@@ -13,34 +13,51 @@ from paddleocr import PaddleOCR
 
 logger = logging.getLogger(__name__)
 
+# Константы для путей к моделям
+PADDLEX_MODEL_DIRS = ("official_models", "hub", "models")
+PADDLEX_CACHE_DIRS = (".paddlex", ".cache/paddlex")
+PADDLEOCR_CACHE_DIRS = (".paddleocr", ".cache/paddleocr")
+
 
 def _resolve_model_dir() -> str | None:
     """
-    В замороженной сборке ищем модели в _internal/_models.
+    В замороженной сборке ищет модели в _internal/_models.
+    
+    Returns:
+        Путь к директории с моделями или None, если не найдено.
     """
     if not getattr(sys, "frozen", False):
         return None
 
     exe_dir = os.path.dirname(sys.executable)
-    internal = os.path.join(exe_dir, "_internal")
-    if os.path.isdir(internal):
-        base = internal
-    elif hasattr(sys, "_MEIPASS"):
-        base = sys._MEIPASS
+    
+    # Определяем базовую директорию
+    if hasattr(sys, "_MEIPASS"):
+        base_dir = Path(sys._MEIPASS)
     else:
-        base = exe_dir
-
-    models_base = os.path.join(base, "_models")
+        base_dir = Path(exe_dir)
+    
+    # Проверяем _internal для portable режима
+    internal_dir = Path(exe_dir) / "_internal"
+    if not internal_dir.is_dir():
+        internal_dir = base_dir
+    
+    models_dir = internal_dir / "_models"
+    
+    if not models_dir.is_dir():
+        return None
 
     # Ищем любую подпапку с моделями paddlex
-    if os.path.isdir(models_base):
-        for root, dirs, _ in os.walk(models_base):
-            for d in dirs:
-                candidate = os.path.join(root, d)
-                if os.path.isdir(candidate) and any(
-                    os.path.isdir(os.path.join(candidate, x)) for x in os.listdir(candidate) if os.path.isdir(os.path.join(candidate, x))
+    for root, dirs, _ in os.walk(models_dir):
+        for d in dirs:
+            candidate = Path(root) / d
+            if candidate.is_dir():
+                # Проверяем, есть ли внутри подпапки с моделями
+                if any(
+                    (candidate / subdir).is_dir() 
+                    for subdir in PADDLEX_MODEL_DIRS
                 ):
-                    return candidate
+                    return str(candidate)
 
     return None
 

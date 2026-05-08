@@ -514,49 +514,9 @@ for model_dir in model_dirs_to_bundle:
 # ============================================================
 # 9. Runtime hook для Windows
 # ============================================================
-runtime_hook_code = r'''
-import os
-import sys
-import pathlib
-
-if getattr(sys, 'frozen', False):
-    # Директория запускаемого файла
-    exe_dir = os.path.dirname(sys.executable)
-    
-    # Добавляем exe_dir в PATH для поиска DLL
-    os.environ['PATH'] = exe_dir + os.pathsep + os.environ.get('PATH', '')
-    
-    # Определяем базовую директорию
-    if hasattr(sys, '_MEIPASS'):
-        base_dir = pathlib.Path(sys._MEIPASS)
-    else:
-        base_dir = pathlib.Path(exe_dir)
-    
-    # Проверяем _internal для portable режима
-    internal_dir = None
-    if os.path.isdir(os.path.join(exe_dir, '_internal')):
-        internal_dir = os.path.join(exe_dir, '_internal')
-    elif os.path.isdir(os.path.join(exe_dir, 'PdfImageToPptxOCR_files')):
-        internal_dir = os.path.join(exe_dir, 'PdfImageToPptxOCR_files')
-    
-    if internal_dir:
-        models_dir = os.path.join(internal_dir, '_models')
-    else:
-        models_dir = os.path.join(str(base_dir), '_models')
-    
-    if os.path.isdir(models_dir):
-        os.environ['PADDLEX_MODEL_PATH'] = models_dir
-        os.environ['PADDLEOCR_MODEL_PATH'] = models_dir
-    
-    # Переменные окружения для Paddle
-    os.environ['FLAGS_use_pir'] = '0'
-    os.environ['FLAGS_use_mkldnn'] = '0'
-'''
-
+# Runtime hook теперь хранится в отдельном файле _runtime_hook_paddle.py
 runtime_hook_path = os.path.join(os.getcwd(), '_runtime_hook_paddle.py')
-with open(runtime_hook_path, 'w', encoding='utf-8') as f:
-    f.write(runtime_hook_code)
-print(f"[SPEC] Created runtime hook: {runtime_hook_path}")
+print(f"[SPEC] Using runtime hook: {runtime_hook_path}")
 
 # ============================================================
 # 10. Исключения (уменьшаем размер билда)
