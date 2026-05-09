@@ -39,13 +39,17 @@ def main():
     
     app_name = "ImagesToPPTX"
     output_dir = dist_dir / app_name
+
+    zip_name = "ImagesToPPTX-win64.zip"
+    zip_path = dist_dir / zip_name
+
     
     print("=" * 60)
     print(f"Сборка {app_name} (onedir режим для Windows)")
     print("=" * 60)
     
     # Очистка предыдущих сборок
-    print("\n[1/5] Очистка предыдущих сборок...")
+    print("\n[1/6] Очистка предыдущих сборок...")
     if dist_dir.exists():
         shutil.rmtree(dist_dir)
         print(f"  Удалена папка: {dist_dir}")
@@ -58,12 +62,12 @@ def main():
         spec_file.unlink()
         print(f"  Удалён файл: {spec_file}")
     
-    print("\n[2/5] Подготовка параметров сборки...")
+    print("\n[2/6] Подготовка параметров сборки...")
     print("  ⚠️ Модели Paddle НЕ включаются в сборку.")
     print("     Пользователь загрузит их при первом запуске автоматически.")
     
     # Формирование команды PyInstaller
-    print("\n[3/5] Запуск PyInstaller...")
+    print("\n[3/6] Запуск PyInstaller...")
     
     # Получаем путь к сайпакетам для добавления данных из paddleocr и paddlex
     try:
@@ -135,7 +139,7 @@ def main():
         "-m", "PyInstaller",
         "--name", app_name,
         "--onedir",  # onedir режим
-        "--windowed",  # GUI приложение (без консоли)
+        #"--windowed",  # GUI приложение (без консоли)
         "--icon=NONE",  # Без иконки (можно добавить свой .ico)
     ]
     
@@ -402,7 +406,7 @@ def main():
         sys.exit(1)
     
     # Проверка результата
-    print("\n[4/5] Проверка результата...")
+    print("\n[4/6] Проверка результата...")
     
     if not output_dir.exists():
         print(f"\n❌ Папка сборки не найдена: {output_dir}")
@@ -425,16 +429,42 @@ def main():
     )
     size_mb = total_size / (1024 * 1024)
     print(f"  Размер сборки: {size_mb:.2f} MB")
+
+    # Создание ZIP-архива portable-сборки
+    print("\n[5/6] Создание ZIP-архива...")
+
+    if zip_path.exists():
+        zip_path.unlink()
+        print(f"  Удалён старый архив: {zip_path}")
+
+    # shutil.make_archive требует путь без расширения .zip
+    archive_base_name = zip_path.with_suffix("")
+
+    shutil.make_archive(
+        base_name=str(archive_base_name),
+        format="zip",
+        root_dir=dist_dir,
+        base_dir=app_name,
+    )
+
+    if not zip_path.exists():
+        print(f"\n❌ ZIP-архив не создан: {zip_path}")
+        sys.exit(1)
+
+    zip_size_mb = zip_path.stat().st_size / (1024 * 1024)
+    print(f"  ✅ ZIP-архив создан: {zip_path}")
+    print(f"  Размер архива: {zip_size_mb:.2f} MB")
+
     
     # Инструкция
-    print("\n[5/5] Инструкция по использованию:")
+    print("\n[6/6] Инструкция по использованию:")
     print("-" * 60)
     print(f"""
 Готовая сборка находится в папке:
   {output_dir}
 
 Для распространения можно:
-1. Запаковать папку {app_name}/ в ZIP-архив
+1. Использовать готовый архив: {zip_path}
 2. Или создать установщик с помощью Inno Setup/NSIS
 
 Важно:
@@ -448,7 +478,7 @@ def main():
   Или из командной строки: {app_name}\\{app_name}.exe
 """)
     print("-" * 60)
-    print("\n✅ Сборка завершена успешно!")
+    print("\n✅ Сборка и упаковка завершены успешно!")
     
     return 0
 
